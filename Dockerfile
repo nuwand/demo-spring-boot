@@ -1,31 +1,37 @@
-# Base image
-FROM --platform=linux/amd64 openjdk:19-jdk-alpine
+# Docker multi-stage build
 
-# Install Maven
-RUN apk update && apk add --no-cache maven
+# 1. Building the App with Maven
+FROM --platform=linux/amd64 maven:3.8.7-eclipse-temurin-19-alpine
 
-# Create and set the working directory
-RUN mkdir -p /app
-WORKDIR /app
+ADD . /java-springboot
+WORKDIR /java-springboot
 
-# Copy the pom.xml file to the container
-COPY pom.xml .
+# Just echo so we can see, if everything is there :)
+RUN ls -l
 
-# Download dependencies
-RUN mvn dependency:go-offline
+# Run Maven build
+RUN mvn clean install -Dmaven.test.skip
 
-# Copy the source code to the container
-COPY src/ ./src/
+# 2. Just using the build artifact and then removing the build-container
+FROM --platform=linux/amd64 openjdk:19-alpine
 
-# Build the application
-RUN mvn package -Dmaven.test.skip
+# https://security.alpinelinux.org/vuln/CVE-2021-46848
+RUN apk add --upgrade libtasn1-progs
 
-# Copy the JAR file to the container
-#COPY target/demo-1.0.0.jar demo-1.0.0.jar
+# https://security.alpinelinux.org/vuln/CVE-2022-37434
+RUN apk update && apk upgrade zlib
 
-# Expose the port that the app will run on
-EXPOSE 8080
+
+# Create a new user with UID 10014
+RUN addgroup -g 10014 choreo && \
+    adduser  --disabled-password  --no-create-home --uid 10014 --ingroup choreo choreouser
+
+VOLUME /tmp
 
 USER 10014
-# Set the command to run the app
-CMD ["java", "-jar", "target/demo-1.0.0.jar"]
+
+# Add Spring Boot app.jar to Container
+COPY --from=0 "/java-springboot/target/demo-*.jar" app.jar
+
+# Fire up our Spring Boot app by default
+CMD [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar" ]
