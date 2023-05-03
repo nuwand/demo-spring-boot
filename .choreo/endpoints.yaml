@@ -1,8 +1,8 @@
 version: 0.1
 
 endpoints:
-- name: Greeting 9090
-  port: 9090
+- name: Greetings
+  port: 8080
   # Allowed values: REST, GraphQL, GRPC
   type: REST
   # Accepted values: Project|Organization|Public.
