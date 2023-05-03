@@ -1,0 +1,15 @@
+version: 0.1
+
+endpoints:
+- name: Greeting 9090
+  port: 9090
+  # Allowed values: REST, GraphQL, GRPC
+  type: REST
+  # Accepted values: Project|Organization|Public.
+  networkVisibility: Public
+  # This is mandatory if the endpoint type is set to REST or GraphQL.
+  context: /hello
+  # This is only applicable to REST endpoint types.
+  # The path should be relative to the docker context.
+  #schemaFilePath: greeting_openapi.yaml
+
