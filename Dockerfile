@@ -26,7 +26,7 @@ RUN apk update && apk upgrade zlib
 RUN addgroup -g 10014 choreo && \
     adduser  --disabled-password  --no-create-home --uid 10014 --ingroup choreo choreouser
 
-VOLUME /tmp
+#VOLUME /tmp
 
 USER 10014
 
